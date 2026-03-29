@@ -3,8 +3,15 @@
 # Run from macOS: bash scripts/setup-orb-vm.sh
 set -euo pipefail
 
-MACHINE="ubuntu-zephyr-native-sim"
-ZEPHYR_WORKSPACE="/Users/kamilkrezolek/zephyr-workspace"
+if [[ "$(uname)" != "Darwin" ]]; then
+  echo "error: This script is macOS-only (OrbStack is not available on Linux)." >&2
+  echo "On Linux, native_sim runs directly — no VM setup needed." >&2
+  exit 1
+fi
+
+MACHINE="${ZEPHYR_ORB_MACHINE:-ubuntu-zephyr-native-sim}"
+# Default: $HOME/zephyr-workspace. Override by setting ZEPHYR_WORKSPACE before running.
+ZEPHYR_WORKSPACE="${ZEPHYR_WORKSPACE:-$HOME/zephyr-workspace}"
 
 echo "==> Bootstrapping $MACHINE for Zephyr native_sim..."
 

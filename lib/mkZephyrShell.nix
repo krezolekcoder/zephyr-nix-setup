@@ -27,7 +27,7 @@
   withOpenocd    ? false,
   withPyocd      ? false,
 
-  # OrbStack native_sim helper — adds `native-sim` script to PATH
+  # native_sim helper — on macOS uses OrbStack VM, on Linux runs directly
   withNativeSim  ? false,
 
   # Escape hatch: bolt on arbitrary packages
@@ -80,8 +80,10 @@ pkgs.mkShell (envAttrs // {
   packages = allPackages;
 
   shellHook = ''
-    # Re-expose system paths hidden by nix develop (OrbStack, Homebrew, etc.)
-    export PATH="/usr/local/bin:/opt/homebrew/bin:$PATH"
+    ${pkgs.lib.optionalString pkgs.stdenv.isDarwin ''
+      # Re-expose system paths hidden by nix develop (OrbStack, Homebrew, etc.)
+      export PATH="/usr/local/bin:/opt/homebrew/bin:$PATH"
+    ''}
 
     echo "Zephyr dev shell ready"
     echo "  targets:  ${if targets == [] then "(none)" else builtins.concatStringsSep ", " targets}"

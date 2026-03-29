@@ -131,7 +131,11 @@ native-sim zephyr/samples/hello_world -- -DCONFIG_BOOT_BANNER=n
 
 Build artifacts are stored inside the VM at `/tmp/native-sim-build/` and persist until the VM reboots. The macOS workspace source is never modified.
 
-> **Note:** `setup-orb-vm.sh` hardcodes `/Users/kamilkrezolek/zephyr-workspace` as the workspace path. Update the `ZEPHYR_WORKSPACE` variable at the top of the script and the `zephyrWorkspace` argument in `modules/orb.nix` to match your setup.
+> **Custom paths:** By default the workspace is assumed to be at `$HOME/zephyr-workspace` and the VM named `ubuntu-zephyr-native-sim`. Override with env vars:
+> ```bash
+> ZEPHYR_WORKSPACE=~/projects/zephyr ZEPHYR_ORB_MACHINE=my-vm bash scripts/setup-orb-vm.sh
+> ```
+> To hardcode a different path in the `native-sim` script, pass `zephyrWorkspace` to `mkZephyrShell` via the `orb.nix` module.
 
 ---
 

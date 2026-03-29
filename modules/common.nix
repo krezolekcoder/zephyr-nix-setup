@@ -42,7 +42,8 @@ in [
   # direnv integration — lets .envrc auto-activate this shell on `cd`
   pkgs.direnv
   pkgs.nix-direnv
-
-  # NOTE: zephyrPkgs.hosttools (dfu-util etc.) excluded — fails to build on aarch64-darwin
-  # Re-add once zephyr-nix fixes macOS Apple Silicon support
+]
+++ pkgs.lib.optionals pkgs.stdenv.isLinux [
+  # dfu-util and other host tools — excluded on macOS (fails on aarch64-darwin)
+  zephyrPkgs.hosttools
 ]
