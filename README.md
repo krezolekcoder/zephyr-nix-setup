@@ -9,6 +9,39 @@ Nix flake scaffold for reproducible Zephyr RTOS development environments on macO
 
 ---
 
+## Why Nix instead of Docker?
+
+The common alternative for reproducible Zephyr environments is a Docker container (Zephyr provides official images). Nix takes a different approach that works better for day-to-day embedded development.
+
+### The Docker approach and its friction
+
+With Docker you get a Linux container with all tools baked in. This works, but creates a wall between you and your work:
+
+- **Slow iteration** — every build runs inside the container. You need volume mounts, wrapper scripts, or a full IDE integration just to edit files on the host and build inside the container.
+- **No native tooling** — debuggers, flash tools, and serial monitors need access to USB devices and the host filesystem. Passing those through Docker requires extra flags and often breaks on macOS.
+- **Large images** — the official Zephyr Docker image is several GB and must be re-pulled when the toolchain version changes.
+- **macOS pain** — Docker on macOS runs inside a Linux VM (Docker Desktop or Colima). USB passthrough for JLink/ST-Link is unreliable or unsupported. File I/O through the VM is slow.
+- **All-or-nothing** — either you are inside the container or you are not. There is no way to selectively add a tool without rebuilding the image.
+
+### What Nix does differently
+
+Nix installs every tool into an isolated path in `/nix/store` and activates them in your current shell via `nix develop`. You stay in your normal terminal, editor, and filesystem — the shell just gains the right tools on `$PATH`.
+
+- **Works on macOS natively** — tools run directly on your Mac. No VM overhead for building, no issues with file I/O performance.
+- **Exact reproducibility** — `flake.lock` pins every dependency to a specific hash. The environment is byte-for-byte identical across machines and over time. `nix develop` on a colleague's machine gives exactly the same toolchain versions.
+- **Composable** — add or remove tools (JLink, OpenOCD, pyOCD) with a single flag in your `flake.nix`. No Dockerfile to maintain.
+- **Per-project isolation** — different projects can use different versions of west, cmake, or the ARM toolchain simultaneously without conflicts.
+- **direnv integration** — the shell activates automatically when you `cd` into the project and deactivates when you leave. No manual `docker run` or `source` commands.
+- **No daemon, no image pull** — tools are fetched and cached in `/nix/store` on first use. Subsequent `nix develop` calls are instant.
+
+### The one thing Docker has over Nix: native_sim
+
+Zephyr's native simulator compiles Zephyr as a Linux process and runs it directly. This requires Linux — it cannot run on macOS regardless of tooling.
+
+This is where OrbStack comes in. Rather than running your entire workflow inside a container, you keep your editor, west workspace, and Nix shell on macOS, and delegate only the `native_sim` build and run step to a lightweight OrbStack VM. The VM mounts your macOS filesystem automatically, so your existing 16 GB Zephyr workspace is reused — nothing is copied or re-downloaded. The `native-sim` script in this repo handles this transparently with a single command.
+
+---
+
 ## Prerequisites
 
 - [Nix](https://nixos.org/download) with flakes enabled
